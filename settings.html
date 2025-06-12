@@ -15,11 +15,14 @@
     </div>
   </nav>
 
-  <main class="flex flex-col items-center justify-center h-[80vh]">
-    <label class="flex items-center space-x-2 cursor-pointer">
-      <span class="text-lg">Dark Mode</span>
-      <input type="checkbox" id="themeToggle" class="w-5 h-5" />
+  <main class="flex flex-col items-center justify-center h-[80vh] space-y-6">
+    <label class="flex items-center space-x-2 cursor-pointer text-lg">
+      <span>Dark Mode</span>
+      <input type="checkbox" id="themeToggle" class="w-6 h-6" />
     </label>
+    <button id="logoutBtn" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded">
+      Logout
+    </button>
   </main>
 
   <footer class="text-center p-4 text-sm opacity-70">
@@ -27,5 +30,17 @@
   </footer>
 
   <script src="theme.js"></script>
+  <script>
+    // Redirect to login if not logged in
+    if (!localStorage.getItem('loggedIn')) {
+      window.location.href = 'login.html';
+    }
+
+    // Logout button logic
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      localStorage.removeItem('loggedIn');
+      window.location.href = 'login.html';
+    });
+  </script>
 </body>
 </html>
