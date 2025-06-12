@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>GIU Dashboard - Login</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="flex items-center justify-center h-screen bg-gray-100 dark:bg-gray-900 text-black dark:text-white transition-colors">
+  <form id="loginForm" class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md space-y-4 w-80">
+    <h2 class="text-xl font-bold text-center">Login</h2>
+    <input type="text" id="username" placeholder="Username" required class="w-full p-2 rounded border dark:bg-gray-700" />
+    <input type="password" id="password" placeholder="Password" required class="w-full p-2 rounded border dark:bg-gray-700" />
+    <button type="submit" class="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700">Login</button>
+    <p id="error" class="text-red-500 text-sm text-center hidden"></p>
+    <p class="text-center text-sm">
+      Don't have an account? <a href="signup.html" class="text-green-600 hover:underline">Sign Up</a>
+    </p>
+  </form>
+  <script src="theme.js"></script>
+</body>
+</html>
