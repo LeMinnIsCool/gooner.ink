@@ -1,16 +1,44 @@
-// Load saved theme
-const isDark = localStorage.getItem('theme') === 'dark';
-if (isDark) {
+// Dark Mode Logic
+const enableDark = () => {
   document.documentElement.classList.add('dark');
-  document.getElementById('themeToggle')?.setAttribute('checked', 'true');
+  localStorage.setItem('theme', 'dark');
+};
+
+const disableDark = () => {
+  document.documentElement.classList.remove('dark');
+  localStorage.setItem('theme', 'light');
+};
+
+// Init theme
+if (localStorage.getItem('theme') === 'dark') {
+  enableDark();
+} else {
+  disableDark();
 }
 
-// Listen for toggle
+// Theme toggle
 const toggle = document.getElementById('themeToggle');
 if (toggle) {
+  toggle.checked = localStorage.getItem('theme') === 'dark';
   toggle.addEventListener('change', () => {
-    const enableDark = toggle.checked;
-    document.documentElement.classList.toggle('dark', enableDark);
-    localStorage.setItem('theme', enableDark ? 'dark' : 'light');
+    toggle.checked ? enableDark() : disableDark();
+  });
+}
+
+// Login handler
+const loginForm = document.getElementById('loginForm');
+if (loginForm) {
+  loginForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const u = document.getElementById('username').value;
+    const p = document.getElementById('password').value;
+
+    // Example credentials
+    if (u === "admin" && p === "gooner") {
+      localStorage.setItem('loggedIn', 'true');
+      window.location.href = 'index.html';
+    } else {
+      document.getElementById('error').classList.remove('hidden');
+    }
   });
 }
