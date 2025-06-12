@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GIU Dashboard - GIU Updates</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="transition-colors duration-500 bg-white text-black dark:bg-gray-900 dark:text-white">
+  <nav class="p-4 flex justify-between items-center">
+    <h1 class="text-2xl font-bold">GIU Updates</h1>
+    <div class="space-x-4">
+      <a href="index.html" class="hover:underline">Home</a>
+      <a href="settings.html" class="hover:underline">Settings</a>
+      <a href="updates.html" class="hover:underline font-semibold underline">GIU Updates</a>
+    </div>
+  </nav>
+
+  <main class="max-w-3xl mx-auto p-4 space-y-8">
+    <div id="postFormContainer" class="hidden space-y-4 border p-4 rounded bg-gray-100 dark:bg-gray-800">
+      <h2 class="text-xl font-semibold">Create a new post</h2>
+      <textarea id="postMessage" rows="3" placeholder="Write your message..." class="w-full p-2 rounded border dark:bg-gray-700"></textarea>
+      <input type="file" id="postImage" accept="image/*" />
+      <button id="postSubmit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Post</button>
+      <p id="postError" class="text-red-500 text-sm hidden"></p>
+    </div>
+
+    <div id="adminPanel" class="hidden border p-4 rounded bg-yellow-100 dark:bg-yellow-900">
+      <h2 class="text-lg font-semibold mb-2">Admin Panel - Manage Authorized Posters</h2>
+      <input id="newUserInput" type="text" placeholder="Enter username to authorize" class="p-2 rounded border dark:bg-gray-700" />
+      <button id="addUserBtn" class="ml-2 bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700">Add User</button>
+      <ul id="authorizedUsersList" class="mt-3 list-disc list-inside"></ul>
+    </div>
+
+    <section id="postsSection" class="space-y-6">
+      <!-- Posts will appear here -->
+    </section>
+  </main>
+
+  <footer class="text-center p-4 text-sm opacity-70">
+    Designed by Jacob Hevican
+  </footer>
+
+  <script src="theme.js"></script>
+  <script>
+    if (!localStorage.getItem('loggedInUser')) {
+      window.location.href = 'login.html';
+    }
+
+    const loggedUser = localStorage.getItem('loggedInUser');
+    const postFormContainer = document.getElementById('postFormContainer');
+    const adminPanel = document.getElementById('adminPanel');
+    const postsSection = document.getElementById('postsSection');
+    const postMessage = document.getElementById('postMessage');
+    const postImage = document.getElementById('postImage');
+    const postSubmit = document.getElementById('postSubmit');
+    const postError = document.getElementById('postError');
+    const newUserInput = document.getElementById('newUserInput');
+    const addUserBtn = document.getElementById('addUserBtn');
+    const authorizedUsersList = document.getElementById('authorizedUsersList');
+
+    // Get authorized users from localStorage or set default (admin only)
+    function getAuthorizedUsers() {
+      const users = localStorage.getItem('authorizedPosters');
+      if (users) return JSON.parse(users);
+      return ['admin']; // default only admin authorized
+    }
+
+    function saveAuthorizedUsers(users) {
+      localStorage.setItem('authorizedPosters', JSON.stringify(users));
+    }
+
+    // Get posts from localStorage or empty array
+    function getPosts() {
+      const posts = localStorage.getItem('giuPosts');
+      return posts ? JSON.parse(posts) : [];
+    }
+
+    function savePosts(posts) {
+      localStorage.setItem('giuPosts', JSON.stringify(posts));
+    }
+
+    // Render posts
+    function renderPosts() {
+      const posts = getPosts();
+      postsSection.innerHTML = '';
+      if (posts.length === 0) {
+        postsSection.innerHTML = '<p class="text-center italic text-gray-500 dark:text-gray-400">No posts yet.</p>';
+        return;
+      }
+      posts.slice().reverse().forEach(post => {
+        const postEl = document.createElement('article');
+        postEl.className = "border rounded p-4 bg-white dark:bg-gray-800 shadow";
+
+        const authorEl = document.createElement('p');
+        authorEl.className = "font-semibold mb-2";
+        authorEl.textContent = `Posted by: ${post.author}`;
+
+        const dateEl = document.createElement('p');
+        dateEl.className = "text-xs text-gray-500 dark:text-gray-400 mb-2";
+        dateEl.textContent = new Date(post.timestamp).toLocaleString();
+
+        const messageEl = document.createElement('p');
+        messageEl.className = "mb-2 whitespace-pre-wrap";
+        messageEl.textContent = post.message;
+
+        postEl.appendChild(authorEl);
+        postEl.appendChild(dateEl);
+        postEl.appendChild(messageEl);
+
+        if (post.image) {
+          const imgEl = document.createElement('img');
+          imgEl.src = post.image;
+          imgEl.alt = "Post image";
+          imgEl.className = "max-w-full rounded mt-2";
+          postEl.appendChild(imgEl);
+        }
+
+        postsSection.appendChild(postEl);
+      });
+    }
+
+    // Show authorized users list in admin panel
+    function renderAuthorizedUsers() {
+      const users = getAuthorizedUsers();
+      authorizedUsersList.innerHTML = '';
+      users.forEach(u => {
+        const li = document.createElement('li');
+        li.textContent = u;
+        authorizedUsersList.appendChild(li);
+      });
+    }
+
+    // Check if current user can post
+    const authorizedUsers = getAuthorizedUsers();
+    const canPost = authorizedUsers.includes(loggedUser);
+
+    if (canPost) {
+      postFormContainer.classList.remove('hidden');
+    }
+
+    if (loggedUser === 'admin') {
+      adminPanel.classList.remove('hidden');
+      renderAuthorizedUsers();
+    }
+
+    postSubmit.addEventListener('click', () => {
+      postError.classList.add('hidden');
+      const msg = postMessage.value.trim();
+      if (!msg) {
+        postError.textContent = "Message cannot be empty.";
+        postError.classList.remove('hidden');
+        return;
+      }
+
+      // Handle image if any
+      const file = postImage.files[0];
+
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          savePost(msg, e.target.result);
+        };
+        reader.readAsDataURL(file);
+      } else {
+        savePost(msg, null);
+      }
+    });
+
+    function savePost(message, imageBase64) {
+      const posts = getPosts();
+      posts.push({
+        author: loggedUser,
+        message: message,
+        image: imageBase64,
+        timestamp: Date.now()
+      });
+      savePosts(posts);
+      postMessage.value = '';
+      postImage.value = '';
+      renderPosts();
+    }
+
+    addUserBtn.addEventListener('click', () => {
+      const newUser = newUserInput.value.trim();
+      if (!newUser) return;
+      let users = getAuthorizedUsers();
+      if (!users.includes(newUser)) {
+        users.push(newUser);
+        saveAuthorizedUsers(users);
+        renderAuthorizedUsers();
+        newUserInput.value = '';
+      }
+    });
+
+    renderPosts();
+  </script>
+</body>
+</html>
